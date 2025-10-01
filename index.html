@@ -1,0 +1,3335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Wheelchair Service Delivery Process</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Hero Section with Parallax */
+        .hero {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #000, #111);
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            padding: 0 20px;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease forwards;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .parallax-bg {
+            position: absolute;
+            top: -20%;
+            left: 0;
+            width: 100%;
+            height: 120%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+            );
+            will-change: transform;
+        }
+        
+        .scroll-down {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-down span {
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        /* Progressive Reveal Sections */
+        .section {
+            padding: 100px 20px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .container {
+          max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Key Players Section */
+        .key-players {
+            background: #0a0a0a;
+        }
+
+        .key-players h2 {
+            font-size: 3rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+        }
+
+        .player-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .player-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            padding-left: 45px;
+        }
+
+        /* Colored ellipse for each stakeholder */
+        .player-header::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Specific colors for each stakeholder */
+        .player-card:nth-child(1) .player-header::before {
+            background-color: #f1c40f; /* Wheelchair Client */
+        }
+
+        .player-card:nth-child(2) .player-header::before {
+            background-color: #9b59b6; /* Caregiver */
+        }
+
+        .player-card:nth-child(3) .player-header::before {
+            background-color: #16a085; /* Clinician */
+        }
+
+        .player-card:nth-child(4) .player-header::before {
+            background-color: #3498db; /* Supplier */
+        }
+
+        .player-card:nth-child(5) .player-header::before {
+            background-color: #27ae60; /* Manufacturer */
+        }
+
+        .player-card:nth-child(6) .player-header::before {
+            background-color: #2c3e50; /* Insurer */
+        }
+
+        .player-header h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .expand-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .player-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .player-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .player-card.expanded .player-content {
+            max-height: 600px;
+        }
+
+        .player-inner {
+            padding: 20px;
+        }
+
+        .player-image {
+        width: 200;            /* control box size */
+        height: 200px;
+        background: #dbdbdb;        /* grey rectangle */
+        flex-shrink: 0;          /* prevent shrinking */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;     /* optional */
+        overflow: hidden;        /* crop overflow */
+        }
+
+        .player-image img {
+        width: 50%;             /* scale inside box */
+        height: 100%;
+        object-fit: cover;       /* fill neatly without distortion */
+        }
+
+        /* Process Section */
+        .process-section {
+            background: #000;
+            padding: 100px 0;
+        }
+
+        .process-container {
+            display: flex;
+            gap: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Left Column - Process Steps */
+        .process-steps {
+            flex: 1;
+            position: relative;
+        }
+
+        .step {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+            opacity: 0.3;
+            transition: opacity 0.5s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step-content {
+            position: relative;
+            width: 100%;
+        }
+
+        .step-illustration {
+            position: absolute;
+            top: 200px;
+            left: 400px;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: -0.1;
+            object-fit: contain;          /* ensures image scales without distortion */
+        }
+
+        .step.active .step-illustration {
+            opacity: 0.3;
+        }
+
+        .step-number {
+            font-size: 5rem;
+            font-weight: 900;
+            opacity: 0.1;
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .step.active .step-number {
+            opacity: 0.3;
+        }
+
+        .step h3 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .step p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+
+        /* Right Column - Stakeholder Experiences */
+        .experiences {
+            flex: 1;
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .experience-stage {
+            display: none;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 500px;
+        }
+
+        .experience-stage.active {
+            display: block;
+            animation: fadeIn 0.7s ease;
+        }
+      
+        .experience-image-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin: 20px auto;
+        }
+
+        .experience-image-placeholder img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;      /* keeps aspect ratio */
+        }
+
+        .stakeholder-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .stakeholder-bubble {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .bubble {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Updated bubble colors to match stakeholder colors */
+        .bubble[data-stakeholder="wheelchair-user"] {
+            background: linear-gradient(135deg, #f1c40f, #d4a50f);
+        }
+
+        .bubble[data-stakeholder="caregiver"] {
+            background: linear-gradient(135deg, #9b59b6, #8344a0);
+        }
+
+        .bubble[data-stakeholder="clinician"] {
+            background: linear-gradient(135deg, #16a085, #128870);
+        }
+
+        .bubble[data-stakeholder="supplier"] {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .bubble[data-stakeholder="manufacturer"] {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .bubble[data-stakeholder="insurer"] {
+            background: linear-gradient(135deg, #2c3e50, #233140);
+            color: #fff;
+        }
+
+        .bubble:hover {
+            transform: scale(1.1);
+        }
+
+        .stakeholder-tooltip {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            width: 250px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .stakeholder-tooltip.tooltip-above {
+            bottom: 120px;
+        }
+
+        .stakeholder-tooltip.tooltip-below {
+            top: 120px;
+        }
+
+        .stakeholder-bubble:hover .stakeholder-tooltip {
+            opacity: 1;
+        }
+        
+      /* Wheelchair Acquisition Animation */
+        .acquisition-section {
+            padding: 150px 20px;
+            text-align: center;
+            background: radial-gradient(circle at center, #111, #000);
+        }
+
+        /* Maintenance and Repair Section */
+        .maintenance-section {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            position: relative;
+        }
+
+        .maintenance-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 100, 100, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(100, 100, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .maintenance-header {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .maintenance-header h2 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .maintenance-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .opportunity-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+
+        .maintenance-intro {
+            margin-bottom: 50px;
+        }
+
+        .maintenance-intro p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .maintenance-challenges {
+            margin-bottom: 50px;
+        }
+
+        .maintenance-challenges h3 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .challenge-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .challenge-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(255, 50, 50, 0.05);
+            border-left: 3px solid rgba(255, 100, 100, 0.5);
+            border-radius: 0 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+
+        .challenge-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .challenge-item strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .opportunities-section h3 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .opportunity-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .opp-card {
+            background: rgba(100, 255, 100, 0.03);
+            border: 1px solid rgba(100, 255, 100, 0.2);
+            padding: 25px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .opp-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .opp-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .opp-card p {
+            opacity: 0.8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Right Column - Stakeholder Voices */
+        .maintenance-voices {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            height: fit-content;
+        }
+
+        .maintenance-voices h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .voices-subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-bottom: 40px;
+        }
+
+        .maintenance-bubbles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .maintenance-bubble {
+            position: relative;
+        }
+
+        .bubble-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+            position: relative;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Bubble colors matching stakeholder colors */
+        .maintenance-bubble[data-stakeholder="wheelchair-user"] .bubble-inner {
+            background: linear-gradient(135deg, #f1c40f, #d4a50f);
+            color: #000;
+        }
+
+        .maintenance-bubble[data-stakeholder="caregiver"] .bubble-inner {
+            background: linear-gradient(135deg, #9b59b6, #8344a0);
+            color: #fff;
+        }
+
+        .maintenance-bubble[data-stakeholder="clinician"] .bubble-inner {
+            background: linear-gradient(135deg, #16a085, #128870);
+            color: #fff;
+        }
+
+        .maintenance-bubble[data-stakeholder="supplier"] .bubble-inner {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: #fff;
+        }
+
+        .maintenance-bubble[data-stakeholder="manufacturer"] .bubble-inner {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: #fff;
+        }
+
+        .maintenance-bubble[data-stakeholder="insurer"] .bubble-inner {
+            background: linear-gradient(135deg, #2c3e50, #233140);
+            color: #fff;
+        }
+
+        /* Tooltip styling for maintenance section */
+            .bubble-tooltip {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            }
+
+        .maintenance-bubble:hover .bubble-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* above bubble */
+            .bubble-tooltip.tooltip-above {
+            bottom: 100%;   /* attach to top of bubble */
+            z-index: 100;
+            margin-bottom: 10px;
+        }
+
+            /* below bubble */
+            .bubble-tooltip.tooltip-below {
+            top: 100%;      /* attach to bottom of bubble */
+            z-index: 100;
+            margin-top: 10px;
+        }
+
+        .tooltip-header {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tooltip-image {
+            width: 100%;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .tooltip-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .tooltip-quote {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-style: italic;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .participant-id {
+            font-weight: 600;
+            color: #76f7fe;
+            font-style: normal;
+        }
+
+        .tooltip-divider {
+            width: 50%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 15px auto;
+        }
+
+        .voices-insight {
+            margin-top: 40px;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(230, 126, 34, 0.05));
+            border: 1px solid rgba(243, 156, 18, 0.3);
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        .insight-box h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #f39c12;
+            font-weight: 700;
+        }
+
+        .insight-box p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .maintenance-cta {
+            margin-top: 60px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid #f39c12;
+            border-radius: 0 12px 12px 0;
+            text-align: center;
+        }
+
+        .maintenance-cta p {
+            font-size: 1.3rem;
+            font-style: italic;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .maintenance-cta cite {
+            font-size: 1rem;
+            opacity: 0.7;
+            font-style: normal;
+        }
+      
+         /* Survey Data Results Section */
+        .survey-section {
+            padding: 100px 20px;
+            background: #050505;
+        }
+
+        .survey-section h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .survey-intro {
+            text-align: center;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .survey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .survey-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .survey-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .survey-image {
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.034);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .survey-image canvas {
+            max-height: 220px !important;
+        }
+
+        .survey-content {
+            padding: 25px;
+        }
+
+        .survey-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .survey-description {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+      
+      /* Future Visions */
+         .modal-text ul {
+            list-style-type: "➔ ";  /* replaces bullet with an arrow */
+            padding-left: 1em;      /* keep spacing neat */
+        }   
+      
+        .visions-section {
+            padding: 100px 20px;
+            background: #0a0a0a;
+        }
+
+        .visions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .vision-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .vision-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .vision-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .vision-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .vision-year {
+            font-size: 3rem;
+            font-weight: 900;
+            opacity: 0.1;
+            margin-bottom: 20px;
+        }
+
+        .vision-image {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vision-image svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .vision-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Research Redirect Section */
+        .research-section {
+            padding: 120px 20px;
+            background: linear-gradient(135deg, #0a0a0a, #111);
+            text-align: center;
+            position: relative;
+        }
+
+        .research-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+        }
+
+        .research-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .research-section h2 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #fff, #ccc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .research-description {
+            font-size: 1.3rem;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            line-height: 1.8;
+        }
+
+        .research-button {
+            display: inline-block;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .research-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .research-button:hover::before {
+            left: 100%;
+        }
+
+        .research-button:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .research-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 4rem;
+            opacity: 0.6;
+        }
+
+        .research-feature {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .research-feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .research-feature h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .research-feature p {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+      
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: #111;
+            padding: 40px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-header {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .modal-image {
+            max-width: 500px;   /* or whatever size fits your layout */
+            margin: 0 auto;     /* centers the SVG */
+            
+        }
+
+        .modal-image svg {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 16px;   /* adjust value as needed */
+        overflow: hidden;      /* ensures content doesn't spill past corners */
+        }
+
+        .modal-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            opacity: 0.9;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #fff;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stakeholder Evolution Section */
+        .stakeholder-evolution {
+            background: #0a0a0a;
+            padding: 100px 20px;
+        }
+
+        .evolution-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .evolution-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .evolution-header h2 {
+            color: #ffffff;
+            margin: 0 0 15px 0;
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+        }
+        
+        .evolution-header p {
+            color: #a1a1aa;
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 400;
+        }
+        
+        .evolution-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .year-display {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: #ffffff;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .slider-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+        }
+        
+        .evolution-slider {
+            width: 100%;
+            height: 12px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
+            outline: none;
+            -webkit-appearance: none;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .evolution-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #e4e4e7 100%);
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #000000;
+        }
+        
+        .evolution-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        
+        .evolution-visualization {
+            position: relative;
+            width: 100%;
+            height: 650px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        
+        .grid-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .grid-lines .vertical {
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, #ffffff 50%, transparent 100%);
+        }
+        
+        .grid-lines .horizontal {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #ffffff 50%, transparent 100%);
+        }
+        
+        .axis-labels {
+            position: absolute;
+            font-size: 15px;
+            font-weight: 600;
+            color: #d4d4d8;
+            z-index: 5;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .axis-labels.x-axis {
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .axis-labels.y-axis {
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-90deg);
+        }
+        
+        .quadrant-labels {
+            position: absolute;
+            font-size: 13px;
+            font-weight: 600;
+            color: #a1a1aa;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 8px 14px;
+            border-radius: 12px;
+            z-index: 5;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .group-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 2;
+            backdrop-filter: blur(5px);
+        }
+        
+        .group-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(15px);
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 220px;
+            line-height: 1.3;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            z-index: 10;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stakeholder {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            user-select: none;
+            z-index: 4;
+            border: 3px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+        }
+        
+        .stakeholder:hover {
+            transform: scale(1.15) translateZ(0);
+            z-index: 1000;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+            border-color: rgba(255,255,255,0.4);
+        }
+        
+        .evolution-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            max-width: 320px;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .evolution-tooltip.show {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+        
+        .evolution-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #d4d4d8;
+            padding: 8px 0;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        /* Highlighting text */
+        .highlight-tooltip {
+            position: relative;
+            color: #76f7fe;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px dashed #76f7fe;
+        }
+
+        .highlight-tooltip .tooltip-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #111;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            width: 280px;
+            z-index: 20;
+            transition: opacity 0.3s ease;
+            font-weight: 400;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        .highlight-tooltip .tooltip-content img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .highlight-tooltip:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Scrollspy styles */
+        #scrollspy {
+        position: fixed;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        z-index: 999;
+        }
+
+        #scrollspy ul { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+
+        #scrollspy li { 
+            margin: 10px 0; 
+        }
+
+        #scrollspy a {
+        color: #aaa;
+        text-decoration: none;
+        font-weight: 600;
+        }
+
+        #scrollspy a.active {
+        color: #fff;
+        border-left: 3px solid #76f7fe;
+        padding-left: 8px;
+        }
+
+        #scrollspy.hidden {
+        transform: translateY(-50%) translateX(200%); /* slide out to the right */
+        opacity: 0;
+        }
+
+        #scrollspy-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: #111;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .maintenance-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .stat-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .opportunity-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .process-container {
+                flex-direction: column;
+            }
+
+            .experiences {
+                position: relative;
+                top: 0;
+            }
+
+            .step {
+                min-height: auto;
+                padding: 40px 0;
+            }
+
+            .evolution-controls {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .slider-container {
+                margin: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-header h2 {
+                font-size: 2rem;
+            }
+            
+            .maintenance-bubbles {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .bubble-inner {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .bubble-tooltip {
+                width: 250px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="scrollspy-toggle">☰ Menu</button>
+    
+    <!-- Hero Section with Parallax -->
+    <section id="hero" class="hero">
+        <div class="parallax-bg"></div>
+        <div class="hero-content">
+            <h1>Wheelchair Service Delivery Process: A Design Perspective</h1>
+            <p>Visualizing system complexities and diverse stakeholder perspectives through design approaches to improve the wheelchair service delivery process</p>
+        </div>
+
+        <div class="scroll-down">
+            <span>&#8595;</span>
+        </div>
+    </section>
+
+    <!-- Key Players Section -->
+    <section id="stakeholders" class="section key-players">
+        <div class="container">
+            <h2>Stakeholders</h2>
+            <div class="players-grid">
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Wheelchair Client</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="wheelchairuser.png" alt="Wheelchair User"/></div>
+                            <p><em>"If the system won't change for us, we'll change the system."</em> Charlotte has been a full-time wheelchair user since a spinal cord injury at 19. She has spent over a decade navigating the convoluted wheelchair procurement system and has become a fierce advocate for transparency and reform. She holds a tech background and use her skills to expose inefficiencies in the healthcare system.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Caregiver</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="caregiver.png" alt="Caregiver"/></div>
+                            <p>Andrea is a devoted caregiver for her teenage child with disabilities, navigating a wheelchair procurement process that appears orderly on paper but is chaotic in reality. Overwhelmed by the complexity, she often says, "It feels like a full-time job." Lacking comprehensive training in assistive technology, insurance, and maintenance, Andi feels unsupported and isolated.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Clinician</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="clinician.png" alt="Clinician"/></div>
+                            <p>David is a dedicated rehabilitation physician with 10 years of experience in providing care. He is known for building strong, trust-based relationships with her patients, ensuring they feel supported and well-informed. However, she constantly navigates a maze of systemic barriers, from complex insurance policies and extensive documentation that hinder timely access to critical equipment like wheelchairs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Supplier</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="supplier.png" alt="Supplier"/></div>
+                            <p>A battle-hardened supplier frustrated by endless red tape, Jordan is caught between serving wheelchair users and fighting an insurance-driven system that stifles efficiency. With two decades in the industry, she has grown disillusioned but refuses to accept the status quo. Known for pushing boundaries, Jordan is a vocal advocate for reform, calling out inefficiencies and demanding systemic change.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Manufacturer</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="manufacturer.png" alt="Manufacturer"/></div>
+                            <p>A relentless innovator trapped in a bureaucratic maze, Brandon has spent 12 years designing mobility solutions, only to see them stalled by outdated regulations and unpredictable funding policies. Frustrated by the industry's sluggish pace he is on a mission to break through systemic barriers, leveraging technology and advocacy to champion a more human-centered approach.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="player-card">
+                    <div class="player-header">
+                        <h3>Insurer</h3>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="player-content">
+                        <div class="player-inner">
+                            <div class="player-image"><img src="insurer.png" alt="Insurer"/></div>
+                            <p>Robert has over 10 years of experience crafting and refining policies for non-institutional services. He has developed payment methodologies for items like wheelchairs. He navigates a complex system of federal guidelines, stakeholder feedback, and frequent policy updates. He balances fiscal responsibility with the need to support providers and beneficiaries.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stakeholder Evolution Section -->
+    <section id="evolution" class="section stakeholder-evolution">
+        <div class="evolution-container">
+            <div class="opportunity-badge">From Co-design workshop</div>
+            <div class="evolution-header">
+                <h2>Stakeholder Evolution</h2>
+                <p>Interactive visualization of key players transformation over time</p>
+            </div>
+            
+            <div class="evolution-controls">
+                <div class="year-display" id="yearDisplay">Start</div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="3" value="0" class="evolution-slider" id="timeSlider">
+                </div>
+            </div>
+            
+            <div class="evolution-visualization" id="visualization">
+                <div class="grid-lines">
+                    <div class="vertical" style="left: 25%"></div>
+                    <div class="vertical" style="left: 50%"></div>
+                    <div class="vertical" style="left: 75%"></div>
+                    <div class="horizontal" style="top: 25%"></div>
+                    <div class="horizontal" style="top: 50%"></div>
+                    <div class="horizontal" style="top: 75%"></div>
+                </div>
+                
+                <div class="axis-labels x-axis">Conditional Supporters ← → Promoters</div>
+                <div class="axis-labels y-axis">Low Involvement ← → High Involvement</div>
+                
+                <div class="quadrant-labels" style="bottom: 20px; left: 20px;">Conditional Supporters</div>
+                <div class="quadrant-labels" style="bottom: 20px; right: 20px;">Promoters</div>
+                
+                <div class="evolution-tooltip" id="tooltip"></div>
+            </div>
+            
+            <div class="evolution-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e74c3c;"></div>
+                    <span>Insurer</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #2c3e50;"></div>
+                    <span>Manufacturer</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #27ae60;"></div>
+                    <span>Supplier</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3498db;"></div>
+                    <span>Clinician</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #16a085;"></div>
+                    <span>Occupational/Physical Therapist</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8e44ad;"></div>
+                    <span>Medical Front Office Staff</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f39c12;"></div>
+                    <span>Wheelchair User</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f1c40f;"></div>
+                    <span>Caregiver</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #9b59b6;"></div>
+                    <span>Patient Advocate</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #5dade2;"></div>
+                    <span>Relationship Manager</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Steps with Stakeholder Experiences -->
+    <section id="process" class="process-section">
+        <div class="container">
+            <div class="opportunity-badge">From Co-design workshop and evaluation survey</div>
+            <h2 style="text-align: center; font-size: 3rem; margin-bottom: 3rem; font-weight: 900;">The Service Delivery Journey</h2>
+            <p style="text-align: center; font-size: 1.3rem; opacity: 0.8; max-width: 800px; margin: 0 auto 60px;">Navigate through each critical step of the wheelchair acquisition process while exploring diverse stakeholder perspectives</p>
+        </div>
+        <div class="process-container">
+            <!-- Left Column - Process Steps -->
+            <div class="process-steps">
+                <div class="step" data-step="1">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 12@3x100.png" width="500" height="500" alt="Initial Assessment"></span>
+                        <div class="step-number">01</div>
+                        <h3>Initial Assessment</h3>
+                        <p>Get in-touch with medical front office staff to schedule an appointment The client needs to contact the clinic's administrative staff to schedule a consultation for obtaining a prescription.
+                      <br>
+                      <br>
+                      Front office staff help coordinate the appropriate appointment type based on the client's needs or referral. The staff then coordinate with the clinician's schedule to book the client for a consultation.  
+                      </p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 13@3x100.png" width="600" height="500" alt="Prescription"></span>
+                        <div class="step-number">02</div>
+                        <h3>Prescription & Approval</h3>
+                        <p>A physician (e.g., primary care, physiatrist) evaluates the client's medical condition and writes a referral for a wheelchair assessment. This referral is typically required by insurers to initiate the seating and mobility evaluation process.</p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 14@3x100.png" width="700" height="500" alt="Selection"></span>
+                        <div class="step-number">03</div>
+                        <h3>Selecting the Right Fit</h3>
+                        <p>  The client collaborates with a physical or occupational therapist and a certified Assistive Technology Professional (ATP) usually from the supplier. Through one or more evaluation sessions, they assess posture, functional needs, and daily activities. Various wheelchair bases and seating components are trialed, and the team 
+                        <span class="highlight-tooltip">
+                            documents clinical justifications
+                        <span class="tooltip-content">
+                            <img src="powerwheelchairmeasurements.webp" alt="Clinical measurements"/>
+                                A clinical justification is a written explanation by a healthcare professional describing why a specific wheelchair and components are medically necessary for the client's daily function and quality of life.</span>
+                            </span>
+                        </span>
+                        for the final recommendation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="4">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 15@3x100.png" width="800" height="500" alt="Authorization"></span>
+                        <div class="step-number">04</div>
+                        <h3>Prescription to Authorization</h3>
+                        <p>After the final wheelchair configuration is determined, the physician provides a prescription, and the clinician prepares supporting documentation such as the Letter of Medical Necessity. The supplier compiles these with insurer-specific forms and submits the full packet for prior authorization. Communication delays are common; some clients or caregivers proactively check approval status with their insurer and relay updates to the supplier to help move the process forward.</p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="5">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 16@3x100.png" width="600" height="500" alt="Paperwork"></span>
+                        <div class="step-number">05</div>
+                        <h3>Navigating Paperwork & Approvals</h3>
+                        <p>While clinicians and suppliers are responsible for submitting documentation, wheelchair users and caregivers often must repeatedly follow up with insurers or providers to track paperwork and approvals, adding stress to an already lengthy process.</p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="6">
+                    <div class="step-content" style="color: #ff0000;">
+                        <span class="step-illustration"><img src="Asset 17@3x100.png" width="450" height="500" alt="Denial"></span>
+                        <div class="step-number">X</div>
+                        <h3>Insurance Denial</h3>
+                        <p>When a denial is received, the supplier and clinician reviews the reasons and determines next steps. Funding bodies may provide limited feedback. A blanket denial states the individual does not qualify for the equipment, while a component denial targets a specific part of the wheelchair rather than the entire device.This prevents wheelchair user to get their chairs covered by payors, and have to either give-up on acquisition or pay out-of-pocket.</p>
+                    </div>
+                </div>
+                <div class="step" data-step="7">
+                    <div class="step-content">
+                        <span class="step-illustration"><img src="Asset 18@3x100.png" width="700" height="500" alt="Delivery"></span>
+                        <div class="step-number">06</div>
+                        <h3>Equipment Fulfillment</h3>
+                        <p>Once authorization is secured, the supplier orders the wheelchair and components from the manufacturer. At delivery, the supplier (and often the clinician) ensure the equipment matches the prescription and fits the client appropriately. After delivery, the supplier coordinates warranty service, adjustments, and repairs with the manufacturer as needed.
+                            <br>
+                            <br>
+                        <strong>Wheelchair Successfully Acquired</strong>
+<br>After navigating complex systems and overcoming numerous challenges, the wheelchair is finally delivered, marking a new chapter of mobility and independence.
+                        </p>
+                    </div>
+                </div>  
+          </div>
+
+            <!-- Right Column - Stakeholder Experiences -->
+            <section id="process" div id="process-experiences" class="experiences">
+                <!-- Stage 1: Initial Assessment -->
+                <div class="experience-stage active" data-stage="1">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="caregiver">Caregiver</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Caregiver's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 19@3x100.png" alt="Caregiver perspective"></div>
+                                <p class="tooltip-quote">"It took some advocating from caregivers to even be referred to get a wheelchair." <span class="participant-id">P7</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 2: Prescription & Approval -->
+                <div class="experience-stage" data-stage="2">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="wheelchair-user">Wheelchair User</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>User's Perspective:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 19@3x100.png" alt="User perspective"></div>
+                                <p class="tooltip-quote">"For the veterans who have had multiple chairs at this point (...) I think our physical condition has already been noted and accepted, and I shouldn't have to do a PT consult for a chronic issue." <span class="participant-id">P6</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="clinician">Clinician</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Clinician's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 21@3x100.png" alt="Clinician view"></div>
+                                <p class="tooltip-quote">"I spend hours on documentation that should take minutes. The system prioritizes paperwork over patient care."There's no reason for one goal to be broken down into 12 bureaucratic parts, several of which are completely redundant." <span class="participant-id">P7</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 3: Selecting the Right Fit -->
+                <div class="experience-stage" data-stage="3">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="caregiver">Caregiver</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Caregiver's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 18@3x100.png"></div>
+                                <p class="tooltip-quote">"But I think that overall, with a lot more collaboration and stuff, even if it does take a long time to do this, I think that the whole process could be a little bit more seamless with some more collaboration." <span class="participant-id">P5</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="wheelchair-user">Wheelchair User</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>User's Perspective:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 23@3x100.png"></div>
+                                <p class="tooltip-quote">"I didn't really do anything because I didn't know anything. They basically just like, they saw me, and they were like, Oh well, you're going to probably get bigger because you're not in a wheelchair." <span class="participant-id">P2</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="clinician">Clinician</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Clinician's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 26@3x100.png"></div>
+                                <p class="tooltip-quote">"We don't always love money to be a deciding factor. Whether someone achieves functional mobility goals, it's foolish to have someone pursue something that they absolutely cannot obtain. It doesn't mean you don't talk to them about it, but you just you don't attempt to obtain something that's unobtainable." <span class="participant-id">P11</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 4: Prescription to Authorization -->
+                <div class="experience-stage" data-stage="4">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="manufacturer">Manufacturer</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Manufacturer's Perspective:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 28@3x100.png"></div>
+                                <p class="tooltip-quote">"I think I mentioned before that. I think we still need better clinicians (…) suppliers are uncomfortable with being put in a position to act as a clinician in an evaluation process." <span class="participant-id">P4</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="supplier">Supplier</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Supplier's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 23@3x100.png"></div>
+                                <p class="tooltip-quote">"You feel like they would need or benefit from, that's really a challenge when the funding doesn't match what you want to to provide for your client." <span class="participant-id">P9</span></p>           
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="clinician">Clinician</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Clinician's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 28@3x100.png"></div>
+                                <p class="tooltip-quote">"From a documentation standpoint, like this is something that is very challenging when you're a new clinician." <span class="participant-id">P12</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 5: Navigating Paperwork & Approvals -->
+                <div class="experience-stage" data-stage="5">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="supplier">Supplier</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Insurer's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 25@3x100.png"></div>
+                                <p>"(...) Having therapists outside of a clinic setting that have the knowledge base to be able to write up this type of equipment, the insurances now are using AI to scrub documentation, and they are looking for anything to disqualify Somebody to from getting equipment." P10</p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="clinician">Clinician</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Clinician's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 27@3x100.png"></div>
+                                <p class="tooltip-quote">"There's a lot of back and forth between clinicians and insurance about what is a current need versus a future need" <span class="participant-id">P1</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="caregiver">Caregiver</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Supplier's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 24@3x100.png"></div>
+                                <p class="tooltip-quote">"The paperwork is overwhelming. It was more than a full time job. Like, legit. We were just scouring the internet. I mean, I'd spend hours researching." <span class="participant-id">P6</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stage 6: Insurance Denial -->
+                <div class="experience-stage" data-stage="6">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="wheelchair-user">Wheelchair User</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>User's Perspective:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 21@3x100.png"></div>
+                                <p class="tooltip-quote">"Only things that I would say are not positive. Truthfully, would be the funding and procurement okay. And I would say that that is negative because the insurance is always, you know, trying to not pay." <span class="participant-id">P6</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="manufacturer">Manufacturer</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Manufacturer's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 29@3x100.png"></div>
+                                <p class="tooltip-quote">"I feel very strapped in a lot of situations where where we're willing to take the cut in the hit on our margin to give (...) functionality to the user, and yet that still comes in back backfires to us." <span class="participant-id">P9</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="supplier">Supplier</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Insurer's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 26@3x100.png"></div>
+                                <p class="tooltip-quote">"We get them all the way to the approval, and then tell them what they're out of pocket it's going to be even though we told them at the beginning, and they said it was okay, we get them all the way to the approval, and they they say, I can't pay that. So then we have to decide, okay, do we write that off or because, obviously that cuts into our margins too." <span class="participant-id">P10</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              
+                <!-- Stage 7: Equipment Fulfillment -->
+                <div class="experience-stage" data-stage="7">
+                    <h3>Stakeholder Stories</h3>
+                    <div class="stakeholder-bubbles">
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="manufacturer">Manufacturer</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>Manufacturer's View:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 30@3x100.png"></div>
+                                <p class="tooltip-quote">"One of the biggest things that frustrates me is that there's a lot of Payers out there who request prior authorization for a wheelchair repair." <span class="participant-id">P13</span></p>
+                            </div>
+                        </div>
+                        <div class="stakeholder-bubble">
+                            <div class="bubble" data-stakeholder="wheelchair-user">Wheelchair User</div>
+                            <div class="stakeholder-tooltip">
+                                <strong>User's Perspective:</strong>
+                                <div class="experience-image-placeholder"><img src="Asset 25@3x100.png"></div>
+                                <p class="tooltip-quote">"And I would say also negative for product preparation, because it takes so damn long. I mean, it's 2024 there's no reason why we're waiting that long." <span class="participant-id">P6</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Maintenance and Repair Opportunities Section -->
+    <section id="maintenance" class="section maintenance-section">
+        <div class="container">
+            <div class="maintenance-header">
+                <h2>The Hidden Journey: Maintenance & Repair</h2>
+                <p class="section-subtitle">While wheelchair acquisition marks a milestone, the journey doesn't end at delivery. Users face an entirely new set of challenges maintaining their mobility equipment a critical yet underserved aspect of the service delivery ecosystem.</p>
+            </div>
+
+            <div class="maintenance-grid">
+                <!-- Left Column - Main Content -->
+                <div class="maintenance-content">
+                    <div class="maintenance-challenges">
+                        <h3>Current System Failures</h3>
+                        <div class="challenge-list">
+                            <div class="challenge-item">
+                                <span class="challenge-icon">⚠️</span>
+                                <div>
+                                    <strong>Insurance Authorization for Repairs:</strong> Many insurers require prior authorization even for basic maintenance, creating dangerous delays when wheelchairs break down.
+                                </div>
+                            </div>
+                            <div class="challenge-item">
+                                <span class="challenge-icon">⚠️</span>
+                                <div>
+                                    <strong>Parts Availability Crisis:</strong> Discontinued models and proprietary components leave users stranded when specific parts are needed.
+                                </div>
+                            </div>
+                            <div class="challenge-item">
+                                <span class="challenge-icon">⚠️</span>
+                                <div>
+                                    <strong>Geographic Disparities:</strong> Rural and underserved communities often have no local repair options, forcing users to ship chairs away for weeks.
+                                </div>
+                            </div>
+                            <div class="challenge-item">
+                                <span class="challenge-icon">⚠️</span>
+                                <div>
+                                    <strong>Knowledge Gaps:</strong> Users receive minimal training on basic maintenance, leading to preventable breakdowns and shortened equipment lifespan.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Stakeholder Voices -->
+                <div class="maintenance-voices">
+                    <h3>What People Are Saying</h3>
+                    <p class="voices-subtitle">Click to explore stakeholder perspectives on maintenance challenges</p>
+                    
+                    <div class="maintenance-bubbles">
+                        <div class="maintenance-bubble" data-stakeholder="wheelchair-user">
+                            <div class="bubble-inner">
+                                <span class="bubble-label">Wheelchair User</span>
+                                <div class="bubble-tooltip">
+                                    <div class="tooltip-header">Wheelchair User Experience</div>
+                                    <div class="tooltip-image"><img src="Asset 30@3x100.png"></div>
+                                    <p class="tooltip-quote">"Just tap in to my chair whenever it's having an issue. (...) then schedule a pickup to come and get it if the wheelchair needs to be taken somewhere to fix, and then loan me out something where I can continue to live my life, (...) while my little legs are getting worked on" <span class="participant-id">P6</span></p>
+                                    <div class="tooltip-divider"></div>
+                                    <p class="tooltip-quote">"I'm tired of dealing with the incompetence, quite frankly. And so we would do repairs ourselves, which we knew would be of benefit. I said the problem there is that it ruins the warranty on your chair." <span class="participant-id">P2</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="maintenance-bubble" data-stakeholder="supplier">
+                            <div class="bubble-inner">
+                                <span class="bubble-label">Supplier</span>
+                                <div class="bubble-tooltip">
+                                    <div class="tooltip-header">Supplier Perspective</div>
+                                    <div class="tooltip-image"><img src="Asset 28@3x100.png"></div>
+                                    <p class="tooltip-quote">"We want to provide quick repairs, but when insurance requires prior authorization for a $20 caster wheel, the administrative burden costs more than the part itself." <span class="participant-id">P1</span></p>
+                                    <div class="tooltip-divider"></div>
+                                    <p class="tooltip-quote">"Insurance is now making us do a prior authorization for repairs. So if somebody has a broken chair, we have to call our doctor, get a prescription for those parts, send it into the insurance, wait for the approval, and then we can repair the chair. It's absolutely stupid (...) But guess who? Guess who the bad guy is? It's us. Suppliers. " <span class="participant-id">P10</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="maintenance-bubble" data-stakeholder="manufacturer">
+                            <div class="bubble-inner">
+                                <span class="bubble-label">Manufacturer</span>
+                                <div class="bubble-tooltip">
+                                    <div class="tooltip-header">Manufacturer Insights</div>
+                                    <div class="tooltip-image"><img src="Asset 29@3x100.png"></div>
+                                    <p class="tooltip-quote">"One of the biggest things that frustrates me is that there's a lot of payers out there who request prior authorization for a wheelchair repair. It's absolutely ridiculous." <span class="participant-id">P13</span></p>
+                                    <div class="tooltip-divider"></div>
+                                    <p class="tooltip-quote">"The insurance company takes two weeks to return a prior authorization, and then they deny it, and we have to go back and explain it again, which is another two weeks (...) we don't get paid for mileage, we don't get paid for evaluation time." <span class="participant-id">P13</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="maintenance-bubble" data-stakeholder="caregiver">
+                            <div class="bubble-inner">
+                                <span class="bubble-label">Caregiver</span>
+                                <div class="bubble-tooltip">
+                                    <div class="tooltip-header">Caregiver's Burden</div>
+                                    <div class="tooltip-image"><img src="Asset 24@3x100.png"></div>
+                                    <p class="tooltip-quote">"When the chair breaks, everything stops. School, work, life. And I'm the one scrambling to find solutions while insurance drags their feet." <span class="participant-id">P8</span></p>
+                                    <div class="tooltip-divider"></div>
+                                    <p class="tooltip-quote">"Nobody teaches you how to maintain these chairs. We're just expected to figure it out when something goes wrong." <span class="participant-id">P5</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="maintenance-bubble" data-stakeholder="clinician">
+                            <div class="bubble-inner">
+                                <span class="bubble-label">Clinician</span>
+                                <div class="bubble-tooltip">
+                                    <div class="tooltip-header">Clinical Concerns</div>
+                                    <div class="tooltip-image"><img src="Asset 27@3x100.png"></div>
+                                    <p class="tooltip-quote">"I heard horror stories of people who didn't have access to their chairs for weeks or months, either because they their their wheelchair vendor was unresponsive, the parts were on back order, and then, as a result, people are getting pressure sores, they're they're losing jobs." <span class="participant-id">P2</span></p>
+                                    <div class="tooltip-divider"></div>
+                                    <p class="tooltip-quote">"We need standing repair authorizations. Having to justify why a broken wheelchair needs fixing is absurd." <span class="participant-id">P1</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                        <div class="opportunities-section">
+                        <h3>Emerging Opportunities</h3>
+                            <div class="opportunity-cards">
+                                <div class="opp-card">
+                                    <div class="opp-icon">🔧</div>
+                                    <h4>Mobile Repair Networks</h4>
+                                    <p>On-demand technicians bringing repairs directly to users' homes</p>
+                                </div>
+                                <div class="opp-card">
+                                    <div class="opp-icon">📱</div>
+                                    <h4>Digital Diagnostics</h4>
+                                    <p>IoT sensors detecting issues before critical failures occur</p>
+                                </div>
+                                <div class="opp-card">
+                                    <div class="opp-icon">🤝</div>
+                                    <h4>Community Repair Hubs</h4>
+                                    <p>User-led cooperatives sharing knowledge and resources</p>
+                                </div>
+                                <div class="opp-card">
+                                    <div class="opp-icon">📚</div>
+                                    <h4>Preventive Care Programs</h4>
+                                    <p>Regular maintenance schedules preventing major breakdowns</p>
+                                </div>
+                            </div>
+                        </div>
+    </section>
+  
+    <!-- Survey Data Results Section -->
+    <section id="survey" class="section survey-section">
+        <div class="container">
+            <div class="opportunity-badge">From evaluation survey</div>
+            <h2>Research Insights</h2>
+            <p class="survey-intro">
+                Our comprehensive survey of 62 stakeholders across the wheelchair service delivery ecosystem revealed critical insights that supplement the stakeholder stories. These data visualizations highlight systemic patterns and qualitative experiences shared throughout this journey.
+            </p>
+            
+            <div class="survey-grid">
+                <div class="survey-card">
+                    <div class="survey-image"><canvas id="communicationChart"></canvas></div>
+                    <div class="survey-content">
+                        <h3 class="survey-title">Systemic Communication Breakdown</h3>
+                        <p class="survey-description">
+                            Communication emerged as the most frequently cited barrier (71% of respondents), with stakeholders across all roles reporting fragmented information flow between users, clinicians, suppliers, and insurers. The average satisfaction with communication quality was only 3.9/7, indicating significant room for improvement.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="survey-card">
+                    <div class="survey-image"><canvas id="insuranceChart"></canvas></div>
+                    <div class="survey-content">
+                        <h3 class="survey-title">Insurance Approval as Central Bottleneck</h3>
+                        <p class="survey-description">
+                            Insurance approval was identified as a critical pain point by 58% of respondents, with particularly low satisfaction scores (avg 3.8/7) for the current timeline. Payers themselves acknowledged the complexity, with one noting that "depending on an individual's plan, they may or may not be approved for a wheelchair" due to varying medical necessity criteria.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="survey-card">
+                    <div class="survey-image"><canvas id="prioritiesChart"></canvas></div>
+                    <div class="survey-content">
+                        <h3 class="survey-title">Stakeholder Misalignment on Priorities</h3>
+                        <p class="survey-description">
+                            Wheelchair users prioritized customization and communication equally.
+                            Clinicians focused heavily on insurance approval challenges.
+                            Suppliers/Manufacturers emphasized delivery timeline issues.
+                            Caregivers showed concern across all areas, particularly communication gaps.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="survey-card">
+                    <div class="survey-image"><canvas id="futureVisionChart"></canvas></div>
+                    <div class="survey-content">
+                        <h3 class="survey-title">Future Vision Divergence</h3>
+                        <p class="survey-description">
+                            Responses to future service delivery models showed a split:
+                            40% hoped for more user-centered, streamlined processes by 2035.
+                            35% expected minimal change from current systems.
+                            25% envisioned technology-enabled transformations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+  
+    <!-- Future Visions Section -->
+    <section id="visions" class="section visions-section">
+        <div class="container">
+            <div class="opportunity-badge">From co-design wokshop and evaluation survey</div>
+            <h2 style="text-align: center; font-size: 3rem; margin-bottom: 20px;">Envisioning the Future</h2>
+            <p style="text-align: center; font-size: 1.3rem; opacity: 0.8; margin-bottom: 50px;">Three visions for wheelchair service delivery in 2035</p>
+            
+            <div class="visions-grid">
+                <div class="vision-card" data-vision="1">
+                    <div class="vision-year">Vision 1</div>
+                    <h3>The User-Empowered Direct Model</h3>
+                    <div class="vision-image"><svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Crossed out intermediaries -->
+                        <g opacity="0.2">
+                            <circle cx="160" cy="150" r="8" fill="none" stroke="#666" stroke-width="1"/>
+                            <line x1="153" y1="143" x2="167" y2="157" stroke="#666" stroke-width="1"/>
+                            <line x1="167" y1="143" x2="153" y2="157" stroke="#666" stroke-width="1"/>
+                            
+                            <circle cx="240" cy="150" r="8" fill="none" stroke="#666" stroke-width="1"/>
+                            <line x1="233" y1="143" x2="247" y2="157" stroke="#666" stroke-width="1"/>
+                            <line x1="247" y1="143" x2="233" y2="157" stroke="#666" stroke-width="1"/>
+                        </g>
+                        
+                        <!-- Simple direct lines -->
+                        <line x1="200" y1="150" x2="100" y2="100" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="300" y2="100" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="100" y2="200" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="300" y2="200" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        
+                        <!-- End nodes (providers) -->
+                        <circle cx="100" cy="100" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="300" cy="100" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="100" cy="200" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="300" cy="200" r="3" fill="#fff" opacity="0.6"/>
+                        
+                        <!-- Central user circle -->
+                        <circle cx="200" cy="150" r="30" fill="none" stroke="#fff" stroke-width="2"/>
+                        <circle cx="200" cy="150" r="25" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <circle cx="200" cy="150" r="3" fill="#fff"/>
+                    </svg>
+                </div>
+                    <p>From passive recipients to active directors...</p>
+                </div>
+
+                <div class="vision-card" data-vision="2">
+                    <div class="vision-year">Vision 2</div>
+                    <h3>The Integrated Care Network</h3>
+                    <div class="vision-image"><svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Grid background -->
+                        <g opacity="0.15">
+                            <line x1="100" y1="75" x2="300" y2="75" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="150" x2="300" y2="150" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="225" x2="300" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="75" x2="100" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="200" y1="75" x2="200" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="300" y1="75" x2="300" y2="225" stroke="#fff" stroke-width="0.5"/>
+                        </g>
+                        
+                        <!-- Connection lines forming network -->
+                        <line x1="200" y1="75" x2="100" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="200" y1="75" x2="300" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="100" y1="150" x2="200" y2="225" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="300" y1="150" x2="200" y2="225" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="100" y1="150" x2="300" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        
+                        <!-- Central platform (square) -->
+                        <rect x="175" y="125" width="50" height="50" fill="none" stroke="#fff" stroke-width="2" opacity="0.8"/>
+                        <rect x="180" y="130" width="40" height="40" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        
+                        <!-- Stakeholder nodes -->
+                        <circle cx="200" cy="75" r="4" fill="#fff"/>
+                        <circle cx="100" cy="150" r="4" fill="#fff"/>
+                        <circle cx="300" cy="150" r="4" fill="#fff"/>
+                        <circle cx="150" cy="225" r="4" fill="#fff"/>
+                        <circle cx="250" cy="225" r="4" fill="#fff"/>
+                    </svg>
+                </div>
+                    <p>Seamless coordination through connected systems...</p>
+                </div>
+
+                <div class="vision-card" data-vision="3">
+                    <div class="vision-year">Vision 3</div>
+                    <h3>The Preventive Care Evolution</h3>
+                    <div class="vision-image">                    <svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Orbital rings -->
+                        <circle cx="200" cy="150" r="90" fill="none" stroke="#fff" stroke-width="1" opacity="0.2"/>
+                        <circle cx="200" cy="150" r="60" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <circle cx="200" cy="150" r="30" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
+                        
+                        <!-- Orbiting elements (care components) -->
+                        <circle cx="200" cy="60" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="0 200 150" to="360 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="290" cy="150" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="90 200 150" to="450 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="200" cy="240" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="180 200 150" to="540 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="110" cy="150" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="270 200 150" to="630 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Arc segments (modular components) -->
+                        <path d="M 200 90 A 60 60 0 0 1 251.96 110" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 251.96 110 A 60 60 0 0 1 260 150" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 260 150 A 60 60 0 0 1 251.96 190" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 251.96 190 A 60 60 0 0 1 200 210" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 200 210 A 60 60 0 0 1 148.04 190" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 148.04 190 A 60 60 0 0 1 140 150" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 140 150 A 60 60 0 0 1 148.04 110" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 148.04 110 A 60 60 0 0 1 200 90" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        
+                        <!-- Central user -->
+                        <circle cx="200" cy="150" r="6" fill="#fff"/>
+                        <circle cx="200" cy="150" r="3" fill="#0a0a0a"/>
+                    </svg>
+                </div>
+                    <p>From reactive repair to proactive wellness...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vision Modals -->
+    <div id="modal-1" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div class="modal-header">Vision 1: The User-Empowered Direct Model</div>
+            <div class="modal-image">                    <svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Crossed out intermediaries -->
+                        <g opacity="0.2">
+                            <circle cx="160" cy="150" r="8" fill="none" stroke="#666" stroke-width="1"/>
+                            <line x1="153" y1="143" x2="167" y2="157" stroke="#666" stroke-width="1"/>
+                            <line x1="167" y1="143" x2="153" y2="157" stroke="#666" stroke-width="1"/>
+                            
+                            <circle cx="240" cy="150" r="8" fill="none" stroke="#666" stroke-width="1"/>
+                            <line x1="233" y1="143" x2="247" y2="157" stroke="#666" stroke-width="1"/>
+                            <line x1="247" y1="143" x2="233" y2="157" stroke="#666" stroke-width="1"/>
+                        </g>
+                        
+                        <!-- Simple direct lines -->
+                        <line x1="200" y1="150" x2="100" y2="100" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="300" y2="100" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="100" y2="200" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        <line x1="200" y1="150" x2="300" y2="200" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+                        
+                        <!-- End nodes (providers) -->
+                        <circle cx="100" cy="100" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="300" cy="100" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="100" cy="200" r="3" fill="#fff" opacity="0.6"/>
+                        <circle cx="300" cy="200" r="3" fill="#fff" opacity="0.6"/>
+                        
+                        <!-- Central user circle -->
+                        <circle cx="200" cy="150" r="30" fill="none" stroke="#fff" stroke-width="2"/>
+                        <circle cx="200" cy="150" r="25" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <circle cx="200" cy="150" r="3" fill="#fff"/>
+                    </svg>
+                </div>
+
+            <div class="modal-text">
+                In this future, wheelchair users have direct access to manufacturers through AI-powered platforms that bypass traditional intermediaries. Users complete virtual assessments using motion capture and AR technology, receive personalized equipment recommendations within 24 hours, and can trial equipment through VR simulations. The entire process—from initial request to delivery—takes 30 days or less.
+                <br>
+                <br>
+                <strong>Key features:</strong>
+            <ul>
+                <li>AI-driven documentation that eliminates bureaucratic barriers</li>
+                <li>Direct user-manufacturer relationships with embedded clinical consultation</li>
+                <li>Blockchain-verified funding approvals processed in real-time</li>
+                <li>Predictive maintenance using IoT sensors that prevent breakdowns</li>
+                <li>User-controlled data sharing that empowers informed decision-making</li>
+            </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-2" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div class="modal-header">Vision 2: The Integrated Care Network</div>
+            <div class="modal-image"><svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Grid background -->
+                        <g opacity="0.15">
+                            <line x1="100" y1="75" x2="300" y2="75" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="150" x2="300" y2="150" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="225" x2="300" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="100" y1="75" x2="100" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="200" y1="75" x2="200" y2="225" stroke="#fff" stroke-width="0.5"/>
+                            <line x1="300" y1="75" x2="300" y2="225" stroke="#fff" stroke-width="0.5"/>
+                        </g>
+                        
+                        <!-- Connection lines forming network -->
+                        <line x1="200" y1="75" x2="100" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="200" y1="75" x2="300" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="100" y1="150" x2="200" y2="225" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="300" y1="150" x2="200" y2="225" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <line x1="100" y1="150" x2="300" y2="150" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        
+                        <!-- Central platform (square) -->
+                        <rect x="175" y="125" width="50" height="50" fill="none" stroke="#fff" stroke-width="2" opacity="0.8"/>
+                        <rect x="180" y="130" width="40" height="40" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        
+                        <!-- Stakeholder nodes -->
+                        <circle cx="200" cy="75" r="4" fill="#fff"/>
+                        <circle cx="100" cy="150" r="4" fill="#fff"/>
+                        <circle cx="300" cy="150" r="4" fill="#fff"/>
+                        <circle cx="150" cy="225" r="4" fill="#fff"/>
+                        <circle cx="250" cy="225" r="4" fill="#fff"/>
+                    </svg>
+                </div>
+            <div class="modal-text">
+                This model envisions a fully integrated ecosystem where all stakeholders—users, clinicians, suppliers, insurers, and manufacturers—operate on a unified platform. Real-time data sharing eliminates communication gaps, while AI orchestrates the entire process, reducing timeline from 110+ days to under 45 days.
+                <br>
+                <br>
+                <strong>Key features:</strong>
+            <ul>
+                <li>Single portal with transparent tracking for all stakeholders</li>
+                <li>AI-powered care coordinators that proactively manage each case</li>
+                <li>Automated insurance pre-approvals based on clinical algorithms</li>
+                <li>Regional "wheelchair hubs" offering same-day repairs and loaner equipment</li>
+                <li>Continuous feedback loops that improve system performance</li>
+            </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-3" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div class="modal-header">Vision 3: The Preventive Care Evolution</div>
+            <div class="modal-image"><svg viewBox="0 0 400 300">
+                        <rect width="400" height="300" fill="#0a0a0a"/>
+                        
+                        <!-- Orbital rings -->
+                        <circle cx="200" cy="150" r="90" fill="none" stroke="#fff" stroke-width="1" opacity="0.2"/>
+                        <circle cx="200" cy="150" r="60" fill="none" stroke="#fff" stroke-width="1" opacity="0.3"/>
+                        <circle cx="200" cy="150" r="30" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
+                        
+                        <!-- Orbiting elements (care components) -->
+                        <circle cx="200" cy="60" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="0 200 150" to="360 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="290" cy="150" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="90 200 150" to="450 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="200" cy="240" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="180 200 150" to="540 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="110" cy="150" r="3" fill="#fff" opacity="0.7">
+                            <animateTransform attributeName="transform" type="rotate" from="270 200 150" to="630 200 150" dur="20s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Arc segments (modular components) -->
+                        <path d="M 200 90 A 60 60 0 0 1 251.96 110" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 251.96 110 A 60 60 0 0 1 260 150" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 260 150 A 60 60 0 0 1 251.96 190" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 251.96 190 A 60 60 0 0 1 200 210" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 200 210 A 60 60 0 0 1 148.04 190" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 148.04 190 A 60 60 0 0 1 140 150" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        <path d="M 140 150 A 60 60 0 0 1 148.04 110" fill="none" stroke="#fff" stroke-width="2" opacity="0.15"/>
+                        <path d="M 148.04 110 A 60 60 0 0 1 200 90" fill="none" stroke="#fff" stroke-width="2" opacity="0.2"/>
+                        
+                        <!-- Central user -->
+                        <circle cx="200" cy="150" r="6" fill="#fff"/>
+                        <circle cx="200" cy="150" r="3" fill="#0a0a0a"/>
+                    </svg>
+                </div>
+            <div class="modal-text">
+                This future prioritizes prevention over reaction, with wheelchairs as smart health devices that continuously monitor user wellbeing. Regular virtual check-ins, predictive maintenance, and modular designs that adapt to changing needs eliminate the traditional 5-year replacement cycle.
+                <br>
+                <br>
+                <strong>Key features:</strong>
+            <ul>
+                <li>Quarterly wellness assessments combining physical and equipment health</li>
+                <li>Modular wheelchairs that evolve with user needs</li>
+                <li>Community-based repair cooperatives with user-trained technicians</li>
+                <li>Insurance models rewarding preventive maintenance</li>
+                <li>Telehealth integration for real-time clinical support</li>
+            </ul>
+            </div>
+        </div>
+    </div>
+    </section>
+
+    <!-- Vision Modals -->
+    <!-- (Modals remain the same but condensed for brevity) -->
+
+     <!-- Research Redirect Section -->
+    <section id="research" section class="section research-section">
+        <div class="research-content">
+            <h2>Explore the Research Behind This Visualization</h2>
+            <p class="research-description">
+                Dive deeper into the methodology, data analysis, and comprehensive findings that shaped this interactive experience. Access detailed interviews, survey results, policy analysis, and academic research that informed our understanding of the wheelchair service delivery ecosystem.
+            </p>
+            
+            <a href="#" class="research-button">View Complete Research Documentation</a>
+        </div>
+    </section>
+
+    <!-- Scrollspy Navigation -->
+    <nav id="scrollspy">
+        <ul>
+            <li><a href="#hero">Intro</a></li>
+            <li><a href="#stakeholders">Stakeholders</a></li>
+            <li><a href="#evolution">Evolution</a></li>
+            <li><a href="#process">Process</a></li>
+            <li><a href="#maintenance">Maintenance</a></li>
+            <li><a href="#survey">Survey</a></li>
+            <li><a href="#visions">Future</a></li>
+            <li><a href="#research">Research</a></li>
+        </ul>
+    </nav>
+        
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            
+            // Initialize all functionality
+            initializeParallax();
+            initializeProgressiveReveal();
+            initializePlayerCards();
+            initializeProcessSteps();
+            initializeTooltips();
+            initializeVisionCards();
+            initializeMaintenanceBubbles();
+            initializeEvolution();
+            initializeScrollspy();
+            initializeCharts();
+        });
+
+        // Parallax Effect
+        function initializeParallax() {
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const parallax = document.querySelector('.parallax-bg');
+                if (parallax) {
+                    parallax.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
+            });
+        }
+
+        // Progressive Reveal on Scroll
+        function initializeProgressiveReveal() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
+            });
+        }
+
+        // Key Players Collapsible
+        function initializePlayerCards() {
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    card.classList.toggle('expanded');
+                });
+            });
+        }
+
+        // Process Steps Scrollama Effect
+        function initializeProcessSteps() {
+            const steps = document.querySelectorAll('.step');
+            const experienceStages = document.querySelectorAll('.experience-stage');
+
+            if (!steps.length || !experienceStages.length) {
+                console.log('Process steps or experience stages not found');
+                return;
+            }
+
+            console.log('Found', steps.length, 'steps and', experienceStages.length, 'experience stages');
+
+            // Function to update active step based on scroll position
+            function updateActiveStep() {
+                const scrollPosition = window.scrollY + window.innerHeight / 2;
+                
+                let activeStepIndex = 0;
+                steps.forEach((step, index) => {
+                    const rect = step.getBoundingClientRect();
+                    const absoluteTop = rect.top + window.scrollY;
+                    
+                    if (absoluteTop < scrollPosition) {
+                        activeStepIndex = index;
+                    }
+                });
+
+                // Update active classes
+                steps.forEach((step, index) => {
+                    if (index === activeStepIndex) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+
+                // Update experience stages
+                const stepNum = steps[activeStepIndex].dataset.step;
+                experienceStages.forEach(stage => {
+                    if (stage.dataset.stage === stepNum) {
+                        stage.classList.add('active');
+                    } else {
+                        stage.classList.remove('active');
+                    }
+                });
+            }
+
+            // Use scroll event as primary method
+            let scrollTimer;
+            window.addEventListener('scroll', () => {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(updateActiveStep, 50);
+            });
+
+            // Also use Intersection Observer as backup
+            const stepObserverOptions = {
+                threshold: [0.1, 0.3, 0.5, 0.7, 0.9],
+                rootMargin: '-20% 0px -20% 0px'
+            };
+
+            const stepObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.intersectionRatio > 0.5) {
+                        // Remove active from all steps
+                        steps.forEach(s => s.classList.remove('active'));
+                        // Add active to current step
+                        entry.target.classList.add('active');
+                        
+                        // Update experience stage
+                        const stepNum = entry.target.dataset.step;
+                        console.log('Activating step', stepNum);
+                        experienceStages.forEach(stage => {
+                            stage.classList.remove('active');
+                            if (stage.dataset.stage === stepNum) {
+                                stage.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, stepObserverOptions);
+
+            steps.forEach(step => {
+                stepObserver.observe(step);
+            });
+
+            // Ensure first step is active on load
+            if (steps.length > 0) {
+                steps[0].classList.add('active');
+                if (experienceStages.length > 0) {
+                    experienceStages[0].classList.add('active');
+                }
+            }
+
+            // Initial update
+            updateActiveStep();
+        }
+
+        // Tooltip positioning
+        function initializeTooltips() {
+            function positionTooltips() {
+                // Position stakeholder tooltips
+                document.querySelectorAll('.stakeholder-bubble').forEach(bubble => {
+                    const tooltip = bubble.querySelector('.stakeholder-tooltip');
+                    if (tooltip) {
+                        const bubbleRect = bubble.getBoundingClientRect();
+                        const tooltipRect = tooltip.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+                        
+                        tooltip.classList.remove('tooltip-above', 'tooltip-below');
+                        
+                        if (bubbleRect.top - tooltipRect.height - 130 < 0) {
+                            tooltip.classList.add('tooltip-below');
+                        } else {
+                            tooltip.classList.add('tooltip-above');
+                        }
+                    }
+                });
+
+                // Position maintenance tooltips
+                document.querySelectorAll('.maintenance-bubble').forEach(bubble => {
+                    const tooltip = bubble.querySelector('.bubble-tooltip');
+                    if (!tooltip) return;
+
+                    const bubbleRect = bubble.getBoundingClientRect();
+                    const tooltipHeight = tooltip.offsetHeight;
+                    const viewportHeight = window.innerHeight;
+
+                    tooltip.classList.remove('tooltip-above', 'tooltip-below');
+
+                    if (bubbleRect.top < tooltipHeight + 20) {
+                        tooltip.classList.add('tooltip-below');
+                    } else if (viewportHeight - bubbleRect.bottom < tooltipHeight + 20) {
+                        tooltip.classList.add('tooltip-above');
+                    } else {
+                        tooltip.classList.add('tooltip-above');
+                    }
+                });
+            }
+
+            window.addEventListener('load', positionTooltips);
+            window.addEventListener('scroll', positionTooltips);
+            window.addEventListener('resize', positionTooltips);
+            
+            // Call immediately
+            positionTooltips();
+        }
+
+        // Vision card modal functionality
+        function initializeVisionCards() {
+            const visionCards = document.querySelectorAll('.vision-card');
+            const modals = document.querySelectorAll('.modal');
+            const modalCloses = document.querySelectorAll('.modal-close');
+
+            visionCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const visionId = card.dataset.vision;
+                    const modal = document.getElementById(`modal-${visionId}`);
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+            });
+
+            modalCloses.forEach(closeBtn => {
+                closeBtn.addEventListener('click', () => {
+                    closeBtn.closest('.modal').classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                });
+            });
+
+            modals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    modals.forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        }
+
+        // Maintenance section bubble interactions
+        function initializeMaintenanceBubbles() {
+            document.querySelectorAll('.maintenance-bubble').forEach(bubble => {
+                bubble.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    this.classList.toggle('active');
+                });
+            });
+
+            document.addEventListener('click', function() {
+                document.querySelectorAll('.maintenance-bubble.active').forEach(bubble => {
+                    bubble.classList.remove('active');
+                });
+            });
+        }
+
+        // Stakeholder Evolution Functionality
+        function initializeEvolution() {
+            const stakeholderData = [
+                {
+                    // Start - Four distinct groups
+                    year: 0,
+                    groups: [
+                        {
+                            name: "System\nGatekeepers",
+                            position: { x: 40, y: 420, width: 140, height: 140 },
+                            stakeholders: ["insurer"]
+                        },
+                        {
+                            name: "Specifiers\n& Builders",
+                            position: { x: 180, y: 360, width: 150, height: 120 },
+                            stakeholders: ["manufacturer", "supplier"]
+                        },
+                        {
+                            name: "Evaluators",
+                            position: { x: 380, y: 340, width: 120, height: 120 },
+                            stakeholders: ["clinician", "ot_pt"]
+                        },
+                        {
+                            name: "Care\nInitiators",
+                            position: { x: 750, y: 100, width: 180, height: 160 },
+                            stakeholders: ["wheelchair_user", "caregiver"]
+                        }
+                    ],
+                    stakeholders: [
+                        { id: "insurer", name: "Insurer", x: 110, y: 490, size: 100, color: "#e74c3c" },
+                        { id: "manufacturer", name: "Manufacturer", x: 220, y: 430, size: 70, color: "#2c3e50" },
+                        { id: "supplier", name: "Supplier", x: 280, y: 380, size: 80, color: "#27ae60" },
+                        { id: "clinician", name: "Clinician", x: 440, y: 400, size: 90, color: "#3498db" },
+                        { id: "ot_pt", name: "Occupational/\nPhysical Therapist", x: 440, y: 300, size: 100, color: "#16a085" },
+                        { id: "front_office", name: "Medical Front\nOffice Staff", x: 600, y: 480, size: 70, color: "#8e44ad" },
+                        { id: "wheelchair_user", name: "Wheelchair\nUser", x: 800, y: 140, size: 90, color: "#f39c12" },
+                        { id: "caregiver", name: "Caregiver", x: 850, y: 220, size: 70, color: "#f1c40f" }
+                    ]
+                },
+                {
+                    // Evolution Stage 1 - Three groups
+                    year: 1,
+                    groups: [
+                        {
+                            name: "System\nGatekeepers",
+                            position: { x: 40, y: 420, width: 140, height: 140 },
+                            stakeholders: ["insurer"]
+                        },
+                        {
+                            name: "Solution\nArchitects",
+                            position: { x: 200, y: 160, width: 320, height: 280 },
+                            stakeholders: ["clinician", "ot_pt", "supplier", "manufacturer"]
+                        },
+                        {
+                            name: "Care\nInitiators",
+                            position: { x: 750, y: 100, width: 180, height: 160 },
+                            stakeholders: ["wheelchair_user", "caregiver"]
+                        }
+                    ],
+                    stakeholders: [
+                        { id: "insurer", name: "Insurer", x: 110, y: 490, size: 100, color: "#e74c3c" },
+                        { id: "manufacturer", name: "Manufacturer", x: 240, y: 380, size: 70, color: "#2c3e50" },
+                        { id: "supplier", name: "Supplier", x: 320, y: 360, size: 80, color: "#27ae60" },
+                        { id: "clinician", name: "Clinician", x: 460, y: 420, size: 90, color: "#3498db" },
+                        { id: "ot_pt", name: "Occupational/\nPhysical Therapist", x: 460, y: 200, size: 100, color: "#16a085" },
+                        { id: "patient_advocate", name: "Patient\nAdvocate", x: 650, y: 350, size: 60, color: "#9b59b6" },
+                        { id: "wheelchair_user", name: "Wheelchair\nUser", x: 800, y: 140, size: 90, color: "#f39c12" },
+                        { id: "caregiver", name: "Caregiver", x: 850, y: 220, size: 70, color: "#f1c40f" }
+                    ]
+                },
+                {
+                    // Evolution Stage 2 - Moving towards upper right
+                    year: 2,
+                    groups: [
+                        {
+                            name: "System\nCollaborators",
+                            position: { x: 60, y: 400, width: 140, height: 140 },
+                            stakeholders: ["insurer"]
+                        },
+                        {
+                            name: "Mobility\nCo-Creators",
+                            position: { x: 350, y: 80, width: 580, height: 350 },
+                            stakeholders: ["wheelchair_user", "caregiver", "relationship_manager", "patient_advocate", "ot_pt", "clinician", "manufacturer", "supplier"]
+                        }
+                    ],
+                    stakeholders: [
+                        { id: "insurer", name: "Insurer", x: 130, y: 470, size: 90, color: "#e74c3c" },
+                        { id: "manufacturer", name: "Manufacturer", x: 450, y: 250, size: 70, color: "#2c3e50" },
+                        { id: "supplier", name: "Supplier", x: 520, y: 320, size: 80, color: "#27ae60" },
+                        { id: "clinician", name: "Clinician", x: 580, y: 280, size: 90, color: "#3498db" },
+                        { id: "ot_pt", name: "Occupational/\nPhysical Therapist", x: 650, y: 160, size: 100, color: "#16a085" },
+                        { id: "relationship_manager", name: "Relationship\nManager", x: 750, y: 180, size: 70, color: "#5dade2" },
+                        { id: "patient_advocate", name: "Patient\nAdvocate", x: 790, y: 250, size: 60, color: "#9b59b6" },
+                        { id: "wheelchair_user", name: "Wheelchair\nUser", x: 850, y: 120, size: 100, color: "#f39c12" },
+                        { id: "caregiver", name: "Caregiver", x: 880, y: 200, size: 70, color: "#f1c40f" }
+                    ]
+                },
+                {
+                    // Future State - All becoming care initiators in upper right
+                    year: 3,
+                    groups: [
+                        {
+                            name: "Unified Care\nInitiators",
+                            position: { x: 450, y: 80, width: 470, height: 380 },
+                            stakeholders: ["insurer", "wheelchair_user", "caregiver", "relationship_manager", "patient_advocate", "clinician", "supplier", "manufacturer", "ot_pt"]
+                        }
+                    ],
+                    stakeholders: [
+                        { id: "insurer", name: "Insurer", x: 550, y: 350, size: 70, color: "#e74c3c" },
+                        { id: "manufacturer", name: "Manufacturer", x: 620, y: 280, size: 70, color: "#2c3e50" },
+                        { id: "supplier", name: "Supplier", x: 680, y: 320, size: 80, color: "#27ae60" },
+                        { id: "clinician", name: "Clinician", x: 720, y: 250, size: 90, color: "#3498db" },
+                        { id: "ot_pt", name: "Occupational/\nPhysical Therapist", x: 780, y: 160, size: 100, color: "#16a085" },
+                        { id: "relationship_manager", name: "Relationship\nManager", x: 820, y: 180, size: 70, color: "#5dade2" },
+                        { id: "patient_advocate", name: "Patient\nAdvocate", x: 860, y: 220, size: 60, color: "#9b59b6" },
+                        { id: "wheelchair_user", name: "Wheelchair\nUser", x: 900, y: 120, size: 100, color: "#f39c12" },
+                        { id: "caregiver", name: "Caregiver", x: 890, y: 200, size: 70, color: "#f1c40f" }
+                    ]
+                }
+            ];
+
+            const quotes = {
+                insurer: "We need to balance cost containment with quality outcomes for wheelchair users.",
+                manufacturer: "Innovation in wheelchair technology must meet both clinical needs and regulatory standards.",
+                supplier: "Our role is evolving from product provider to solution partner in the mobility ecosystem.",
+                clinician: "Patient-centered care requires collaboration across all stakeholders in the system.",
+                ot_pt: "Assessment and fitting expertise is crucial for successful wheelchair outcomes.",
+                front_office: "Streamlining administrative processes improves access to wheelchair services.",
+                patient_advocate: "Ensuring user voice and choice remains central to service delivery improvements.",
+                relationship_manager: "Building bridges between stakeholders to optimize the entire service experience.",
+                wheelchair_user: "My mobility needs and preferences should drive the entire service process.",
+                caregiver: "Supporting the wheelchair user while navigating complex service systems."
+            };
+
+            let currentYear = 0;
+            const evolutionSlider = document.getElementById('timeSlider');
+            const yearDisplay = document.getElementById('yearDisplay');
+            const evolutionVisualization = document.getElementById('visualization');
+            const evolutionTooltip = document.getElementById('tooltip');
+
+            if (!evolutionSlider || !yearDisplay || !evolutionVisualization || !evolutionTooltip) {
+                console.log('Evolution elements not found');
+                return;
+            }
+
+            function updateVisualization() {
+                const data = stakeholderData[currentYear];
+                const yearLabels = ["Start", "Stage 1", "Stage 2", "Future"];
+                yearDisplay.textContent = yearLabels[currentYear];
+
+                // Clear existing groups and stakeholders
+                const existingGroups = evolutionVisualization.querySelectorAll('.group-circle, .group-label');
+                existingGroups.forEach(g => g.remove());
+                const existingStakeholders = evolutionVisualization.querySelectorAll('.stakeholder');
+                existingStakeholders.forEach(s => s.remove());
+
+                // Add stakeholders first (so they appear below labels)
+                data.stakeholders.forEach(stakeholder => {
+                    const element = document.createElement('div');
+                    element.className = 'stakeholder';
+                    element.id = stakeholder.id;
+                    element.style.left = (stakeholder.x - stakeholder.size/2) + 'px';
+                    element.style.top = (stakeholder.y - stakeholder.size/2) + 'px';
+                    element.style.width = stakeholder.size + 'px';
+                    element.style.height = stakeholder.size + 'px';
+                    element.style.backgroundColor = stakeholder.color;
+                    element.textContent = stakeholder.name;
+
+                    // Add hover events
+                    element.addEventListener('mouseenter', (e) => showEvolutionTooltip(e, stakeholder.id));
+                    element.addEventListener('mouseleave', hideEvolutionTooltip);
+                    element.addEventListener('mousemove', (e) => updateEvolutionTooltipPosition(e));
+
+                    evolutionVisualization.appendChild(element);
+                });
+
+                // Add group circles after stakeholders
+                data.groups.forEach((group, index) => {
+                    // Create group circle
+                    const groupCircle = document.createElement('div');
+                    groupCircle.className = 'group-circle';
+                    groupCircle.style.left = group.position.x + 'px';
+                    groupCircle.style.top = group.position.y + 'px';
+                    groupCircle.style.width = group.position.width + 'px';
+                    groupCircle.style.height = group.position.height + 'px';
+                    evolutionVisualization.appendChild(groupCircle);
+
+                    // Create group label (highest z-index)
+                    const groupLabel = document.createElement('div');
+                    groupLabel.className = 'group-label';
+                    groupLabel.style.left = (group.position.x + group.position.width/2) + 'px';
+                    groupLabel.style.top = (group.position.y + group.position.height/2) + 'px';
+                    groupLabel.textContent = group.name;
+                    evolutionVisualization.appendChild(groupLabel);
+                });
+            }
+
+            function showEvolutionTooltip(e, stakeholderId) {
+                const quote = quotes[stakeholderId];
+                if (quote) {
+                    evolutionTooltip.textContent = quote;
+                    evolutionTooltip.classList.add('show');
+                    updateEvolutionTooltipPosition(e);
+                }
+            }
+
+            function hideEvolutionTooltip() {
+                evolutionTooltip.classList.remove('show');
+            }
+
+            function updateEvolutionTooltipPosition(e) {
+                const rect = evolutionVisualization.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                evolutionTooltip.style.left = (x + 10) + 'px';
+                evolutionTooltip.style.top = (y - 60) + 'px';
+            }
+
+            evolutionSlider.addEventListener('input', (e) => {
+                currentYear = parseInt(e.target.value);
+                updateVisualization();
+            });
+
+            // Initialize
+            updateVisualization();
+        }
+
+        // Scrollspy functionality
+        function initializeScrollspy() {
+            const toggleBtn = document.getElementById('scrollspy-toggle');
+            const scrollspy = document.getElementById('scrollspy');
+
+            if (toggleBtn && scrollspy) {
+                toggleBtn.addEventListener('click', () => {
+                    scrollspy.classList.toggle('hidden');
+                });
+            }
+
+            // Scrollspy active state
+            const sections = document.querySelectorAll("section[id]");
+            const navLinks = document.querySelectorAll("#scrollspy a");
+
+            if (!sections.length || !navLinks.length) return;
+
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => link.classList.remove("active"));
+                        const activeLink = document.querySelector(
+                            `#scrollspy a[href="#${entry.target.id}"]`
+                        );
+                        if (activeLink) activeLink.classList.add("active");
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(section => observer.observe(section));
+        }
+
+// Chart.js Configuration - Contemporary Black & White Theme
+        Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#a1a1aa';
+
+        // Chart 1: Communication Breakdown
+        const communicationCtx = document.getElementById('communicationChart');
+        if (communicationCtx) {
+            new Chart(communicationCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Communication Issues'],
+                    datasets: [{
+                        label: 'Frequency (%)',
+                        data: [71],
+                        backgroundColor: 'rgba(24, 24, 27, 0.9)',
+                        borderWidth: 0,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Satisfaction (out of 7)',
+                        data: [3.9],
+                        backgroundColor: 'rgba(161, 161, 170, 0.9)',
+                        borderWidth: 0,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 15,
+                                font: { weight: 'bold' },
+                                color: '#a1a1aa'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            max: 100,
+                            title: { display: true, text: 'Frequency (%)', font: { weight: 'bold' }, color: '#a1a1aa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: '#a1a1aa' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            max: 7,
+                            title: { display: true, text: 'Satisfaction', font: { weight: 'bold' }, color: '#a1a1aa' },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#a1a1aa' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold' }, color: '#a1a1aa' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 2: Insurance Approval
+        const insuranceCtx = document.getElementById('insuranceChart');
+        if (insuranceCtx) {
+            new Chart(insuranceCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Timeline', 'Complexity', 'Documentation'],
+                    datasets: [{
+                        label: 'Satisfaction (out of 7)',
+                        data: [3.8, 3.2, 2.9],
+                        backgroundColor: ['rgba(24, 24, 27, 0.9)', 'rgba(82, 82, 91, 0.9)', 'rgba(161, 161, 170, 0.9)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            callbacks: { label: (context) => `Satisfaction: ${context.parsed.x}/7` }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 7,
+                            title: { display: true, text: 'Satisfaction (1-7)', font: { weight: 'bold' }, color: '#a1a1aa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { color: '#a1a1aa' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { weight: 'bold' }, color: '#a1a1aa' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Chart 3: Stakeholder Priorities Misalignment
+        const prioritiesCtx = document.getElementById('prioritiesChart');
+        if (prioritiesCtx) {
+            new Chart(prioritiesCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Communication', 'Customization', 'Insurance Approval', 'Delivery Timeline'],
+                    datasets: [{
+                        label: 'Wheelchair Users',
+                        data: [86, 43, 43, 43],
+                        backgroundColor: 'rgba(24, 24, 27, 0.95)',
+                        borderWidth: 0
+                    }, {
+                        label: 'Clinicians',
+                        data: [70, 40, 40, 40],
+                        backgroundColor: 'rgba(63, 63, 70, 0.95)',
+                        borderWidth: 0
+                    }, {
+                        label: 'Suppliers/Manufacturers',
+                        data: [45, 35, 35, 50],
+                        backgroundColor: 'rgba(113, 113, 122, 0.95)',
+                        borderWidth: 0
+                    }, {
+                        label: 'Caregivers',
+                        data: [58, 25, 33, 42],
+                        backgroundColor: 'rgba(161, 161, 170, 0.95)',
+                        borderWidth: 0
+                    }, {
+                        label: 'Payers/Insurers',
+                        data: [60, 20, 100, 40],
+                        backgroundColor: 'rgba(212, 212, 216, 0.95)',
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                usePointStyle: true, 
+                                padding: 15, 
+                                font: { weight: 'bold', size: 10 }, 
+                                color: '#a1a1aa' 
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + getRelativeLabel(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { 
+                                display: true, 
+                                text: 'Frequency of Mentions', 
+                                font: { weight: 'bold' }, 
+                                color: '#a1a1aa' 
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                font: { weight: 'bold', size: 9 }, 
+                                color: '#a1a1aa',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function getRelativeLabel(value) {
+            if (value >= 70) return 'Very Frequently Mentioned';
+            if (value >= 50) return 'Frequently Mentioned';
+            if (value >= 35) return 'Moderately Mentioned';
+            if (value >= 20) return 'Occasionally Mentioned';
+            return 'Rarely Mentioned';
+        }
+
+        // Chart 4: Future Vision
+        const futureVisionCtx = document.getElementById('futureVisionChart');
+        if (futureVisionCtx) {
+            new Chart(futureVisionCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['User-Centered (40%)', 'Minimal Change (35%)', 'Tech-Enabled (25%)'],
+                    datasets: [{
+                        data: [40, 35, 25],
+                        backgroundColor: ['rgba(24, 24, 27, 0.95)', 'rgba(113, 113, 122, 0.95)', 'rgba(212, 212, 216, 0.95)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, padding: 10, font: { weight: 'bold', size: 10 }, color: '#a1a1aa' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            callbacks: { label: (context) => context.label }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
